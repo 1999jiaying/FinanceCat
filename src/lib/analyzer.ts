@@ -4,21 +4,31 @@ export async function analyzeTransactions(data: any[]) {
     const url = "https://api.cohere.com/v1/chat";
 
     const prompt = `
-  Analyze these transactions for a "Trading Cat" (sophisticated investor/trader).
-  
-  LOGIC:
-  - NO NAME? If a transaction has no recipient/sender name, categorize it as "Internal Transfers".
-  - BUCKETS: Group everything into exactly 5 to 8 broad categories.
-  - REMARKS: Pick the TOP 5 most significant categories and write one blunt, funny, straightforward observation for each. Leave others empty.
-  - STRATEGY: Provide exactly 1 clear piece of advice to improve financial management.
-  - TONE: Direct, professional, but slightly roast-heavy. No cat roleplay.
+  You are a professional financial auditor for a "Trading Cat". Analyze the data into exactly 6 to 8 categories.
 
-  RETURN JSON:
+  STRICT CATEGORY TAXONOMY:
+  1. "Food Delivery" - Uber Eats, Deliveroo, Foodora, Wolt, etc.
+  2. "Restaurants & Cafes" - Dining out, bars, coffee shops, pubs.
+  3. "Groceries" - Supermarkets (Lidl, Prisma, K-Market) and essentials.
+  4. "Housing & Utilities" - Rent, electricity, water, internet.
+  5. "Transport & Travel" - Fuel, public transit, taxis, flights.
+  6. "Shopping & Lifestyle" - Clothes, electronics, hobbies, gym.
+  7. "Investments & Savings" - Stock brokers, crypto, or large savings moves.
+  8. "Internal Transfers" - Moves between your own accounts (NO NAME transactions).
+
+  RULES:
+  - Categorize "Uber Eats", "Wolt" specifically as "Food Delivery".
+  - Categorize physical restaurant names as "Restaurants & Cafes".
+  - If no name is present, use "Internal Transfers".
+  - Return MAX 5 categories with a "remark".
+  - Provide 1 straightforward financial advice.
+
+  RETURN JSON ONLY:
   {
-    "summary": "One-sentence blunt summary.",
-    "recommendation": "One straightforward financial advice.",
+    "summary": "...",
+    "recommendation": "...",
     "categories": [
-      {"name": "Category", "amount": 123.45, "remark": "Blunt comment or empty string"}
+      {"name": "Category Name", "amount": 0, "remark": "..."}
     ]
   }
 
