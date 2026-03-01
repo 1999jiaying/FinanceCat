@@ -8,20 +8,18 @@ export const parseNordeaCSV = (file: File): Promise<any[]> => {
       transformHeader: (h) => h.trim(), 
       complete: (results) => {
         try {
-          // 过滤并清洗数据
           const cleanedData = results.data
             .map((row: any) => {
-              // 从你截图看到的准确字段名：'Booking date', 'Amount', 'Name'
               const rawDate = row['Booking date'];
               const rawDesc = row['Name'] || row['Message'];
               const rawAmount = row['Amount'];
 
               if (!rawAmount || !rawDesc) return null;
 
-              // 处理像 "-12,90" 这样带引号和逗号的字符串
+              // 处理金额格式：去掉引号、空格，将逗号换成点
               const sanitizedAmount = String(rawAmount)
-                .replace(/[ "]/g, '') // 去掉引号和空格
-                .replace(',', '.');   // 逗号转小数点
+                .replace(/[ "]/g, '')
+                .replace(',', '.');
               
               const parsedAmount = parseFloat(sanitizedAmount);
 
@@ -31,18 +29,21 @@ export const parseNordeaCSV = (file: File): Promise<any[]> => {
                 amount: parsedAmount, 
               };
             })
-            .filter((item: any) => 
+            // 关键修复：显式告诉 TypeScript 过滤掉 null 且只保留支出
+            .filter((item): item is { date: string; description: string; amount: number } => 
               item !== null && 
               !isNaN(item.amount) && 
-              item.amount < 0 // 只看消费
+              item.amount < 0 // 💡 只保留负数（支出），避免把存入的钱当成花掉的钱
             )
             .map(item => ({
               ...item,
-              amount: Math.abs(item.amount) // 转正数给 AI 分析
+              amount: Math.abs(item.amount) // 将支出转为正数，方便 AI 统计分类
             }));
 
-          console.log("✅ 解析后的数据预览:", cleanedData.slice(0, 3));
-          resolve(cleanedData);
+          // 限制给 AI 的数据量，防止超出 Token 限制
+          const finalizedData = cleanedData.slice(0, 100); 
+          console.log("✅ 解析后的数据预览:", finalizedData.slice(0, 3));
+          resolve(finalizedData);
         } catch (err) {
           reject(err);
         }
